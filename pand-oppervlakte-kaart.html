@@ -218,11 +218,14 @@
     <div class="veld"><span class="label">Status</span><span class="waarde" id="v-status">–</span></div>
     <div class="veld"><span class="label">Verblijfsobjecten</span><span class="waarde" id="v-vbo">–</span></div>
     <div class="veld"><span class="label">Gebruiksopp. (NEN2580)</span><span class="waarde" id="v-nen">–</span></div>
+    <div class="veld"><span class="label">Energielabel</span><span class="waarde"><a id="v-energielabel" href="#" target="_blank" rel="noopener">Check op EP-Online ↗</a></span></div>
 
     <div class="toelichting">
       Footprint is berekend uit de pandgeometrie (BAG WFS), niet uit een BAG-attribuut.
       De NEN2580-waarde is de gebruiksoppervlakte van de verblijfsobjecten in dit pand
-      en wijkt af bij meerdere verdiepingen.
+      en wijkt af bij meerdere verdiepingen. Het energielabel staat niet in open,
+      sleutelvrije data, dus die link opent EP-Online met postcode en huisnummer
+      al zichtbaar om zelf in te vullen.
     </div>
   </div>
 </div>
@@ -495,6 +498,21 @@ function toonPand(pand, footprint, adresDoc, x, y) {
         : props.oppervlakte_min + '–' + props.oppervlakte_max + ' m²')
     : '–';
   document.getElementById('v-nen').textContent = nen;
+
+  const elLink = document.getElementById('v-energielabel');
+  const postcodeRuw = (adresDoc.postcode || '').replace(/\s/g, '');
+  const postcode = postcodeRuw.replace(/^(\d{4})([A-Za-z]{2})$/, '$1 $2');
+  const huisnummer = adresDoc.huisnummer || '';
+  const zoekterm = `${postcode} ${huisnummer}`.trim();
+  elLink.href = 'https://www.ep-online.nl/Energylabel/Search';
+  elLink.title = zoekterm ? `Zoek op: ${zoekterm}` : '';
+  elLink.textContent = zoekterm ? `${zoekterm} · Check ↗` : 'Check op EP-Online ↗';
+  elLink.onclick = (e) => {
+    if (zoekterm && navigator.clipboard) {
+      navigator.clipboard.writeText(zoekterm).catch(() => {});
+    }
+  };
+
   resultaatEl.style.display = 'block';
 
   if (pandLayer) map.removeLayer(pandLayer);
